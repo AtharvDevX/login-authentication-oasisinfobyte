@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Auth System</title>
+  <style>
+    /* 🌙 Dark Glassmorphism Theme */
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    }
+
+    .auth-container {
+      width: 380px;
+      padding: 30px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      color: #fff;
+      box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      transition: all 0.3s ease-in-out;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #00e6ff;
+    }
+
+    input {
+      width: 85%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 15px;
+      transition: 0.3s;
+    }
+    input:focus {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    button {
+      width: 90%;
+      padding: 12px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #00e6ff, #0099ff);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.2s, background 0.3s;
+    }
+    button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(90deg, #0099ff, #0066ff);
+    }
+
+    .link {
+      display: block;
+      margin-top: 15px;
+      color: #bbb;
+      cursor: pointer;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+    .link:hover {
+      color: #00e6ff;
+    }
+
+    .error, .success {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .error {
+      color: #ff4d4d;
+    }
+    .success {
+      color: #00ff99;
+    }
+
+    /* Secure Page */
+    .secure {
+      display: none;
+      text-align: center;
+    }
+
+    .secure h2 {
+      color: #00ffcc;
+    }
+
+    /* Responsive */
+    @media (max-width: 450px) {
+      .auth-container {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Box -->
+  <div class="auth-container" id="auth-container">
+    <h2 id="form-title">Login</h2>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button onclick="handleAuth()">Login</button>
+    <span class="link" id="toggle-link">Don’t have an account? Register</span>
+    <p id="message"></p>
+  </div>
+
+  <!-- Secure Page -->
+  <div class="auth-container secure" id="secure-container">
+    <h2>Welcome 🎉</h2>
+    <p>You are successfully logged in!</p>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    let isLogin = true;
+
+    document.getElementById("toggle-link").addEventListener("click", () => {
+      isLogin = !isLogin;
+      document.getElementById("form-title").innerText = isLogin ? "Login" : "Register";
+      document.querySelector("button").innerText = isLogin ? "Login" : "Register";
+      document.getElementById("toggle-link").innerText = isLogin 
+        ? "Don’t have an account? Register"
+        : "Already have an account? Login";
+      document.getElementById("message").innerText = "";
+    });
+
+    function handleAuth() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      let msg = document.getElementById("message");
+
+      if (!username || !password) {
+        msg.className = "error";
+        msg.innerText = "⚠ Please fill in all fields!";
+        return;
+      }
+
+      let users = JSON.parse(localStorage.getItem("users")) || {};
+
+      if (isLogin) {
+        if (users[username] && users[username] === password) {
+          localStorage.setItem("loggedInUser", username);
+          showSecurePage();
+        } else {
+          msg.className = "error";
+          msg.innerText = "❌ Invalid username or password!";
+        }
+      } else {
+        if (users[username]) {
+          msg.className = "error";
+          msg.innerText = "⚠ User already exists!";
+        } else {
+          users[username] = password;
+          localStorage.setItem("users", JSON.stringify(users));
+          msg.className = "success";
+          msg.innerText = "✅ Registration successful! You can now login.";
+          isLogin = true;
+          document.getElementById("form-title").innerText = "Login";
+          document.querySelector("button").innerText = "Login";
+          document.getElementById("toggle-link").innerText = "Don’t have an account? Register";
+        }
+      }
+    }
+
+    function showSecurePage() {
+      document.getElementById("auth-container").style.display = "none";
+      document.getElementById("secure-container").style.display = "block";
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      document.getElementById("secure-container").style.display = "none";
+      document.getElementById("auth-container").style.display = "block";
+    }
+
+    // Auto-login if session exists
+    window.onload = () => {
+      if (localStorage.getItem("loggedInUser")) {
+        showSecurePage();
+      }
+    }
+  </script>
+</body>
+</html>
